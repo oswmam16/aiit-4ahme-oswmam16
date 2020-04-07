@@ -28,6 +28,38 @@ public class Employee {
         this.lastName = lastName;
     }
     
+    public Integer getId() {
+        return id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+    
     @Override
     public String toString() {
         return "Employee [id=" + id + ", firstName=" + firstName + ", " + "lastName=" + lastName + ", roles=" + roles + "]";
