@@ -5,8 +5,11 @@
  */
 package javaNetwork;
 
+import com.google.gson.Gson;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +28,7 @@ public class Server {
     public boolean isTimerRunning() {
         if(startMillis != 0) {
             return true;
-        } else 
+        } 
         return false;
     }
     
@@ -45,4 +48,38 @@ public class Server {
             timeOffset += System.currentTimeMillis() - startMillis;
         }
     }
+    
+    class ConnectionHandler implements Runnable{
+    
+        private Socket socket;
+        private boolean master;
+
+        public ConnectionHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        public boolean isClosed() {
+            return socket.isClosed();
+        }
+
+        public boolean isMaster() {
+            return master;
+        }
+
+        @Override
+        public void run() {
+            BufferedReader bfreader = new BufferedReader();
+
+            String line = null;
+            try {
+
+            } catch(Exception ex) {
+                throw new IllegalArgumentException();
+            }
+
+            Gson gson = new Gson();
+            gson.toJson(line);
+        }
+    }
+    
 }
