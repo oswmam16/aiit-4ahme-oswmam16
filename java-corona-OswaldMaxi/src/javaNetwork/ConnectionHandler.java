@@ -14,36 +14,36 @@ import java.net.Socket;
  *
  * @author maxio
  */
-class ConnectionHandler implements Runnable{
-    
-    private Socket socket;
-    private boolean master;
-
-    public ConnectionHandler(Socket socket) {
-        this.socket = socket;
-    }
-
-    public boolean isClosed() {
-        return socket.isClosed();
-    }
-    
-    public boolean isMaster() {
-        return master;
-    }
-    
-    @Override
-    public void run() {
-        BufferedReader bfreader = new BufferedReader();
-        
-        String line;
-        try {
-            
-        } catch (Exception ex) {
-            throw new IllegalArgumentException();
-        }
-        
-        Gson gson = new Gson();
-        gson.toJson(line);
-    }
-    
-}
+//class ConnectionHandler implements Runnable{
+//    
+//    private Socket socket;
+//    private boolean master;
+//
+//    public ConnectionHandler(Socket socket) {
+//        this.socket = socket;
+//    }
+//
+//    public boolean isClosed() {
+//        return socket.isClosed();
+//    }
+//    
+//    public boolean isMaster() {
+//        return master;
+//    }
+//    
+//    @Override
+//    public void run() {
+//        BufferedReader bfreader = new BufferedReader();
+//        
+//        String line = null;
+//        try {
+//            
+//        } catch(Exception ex) {
+//            throw new IllegalArgumentException();
+//        }
+//        
+//        Gson gson = new Gson();
+//        gson.toJson(line);
+//    }
+//    
+//}
