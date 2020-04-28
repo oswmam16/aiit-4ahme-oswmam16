@@ -6,8 +6,10 @@
 package javanetwork;
 
 import com.google.gson.Gson;
+import com.sun.org.apache.xml.internal.serialize.HTMLdtd;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.Thread;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,6 +19,9 @@ import java.util.List;
  *
  * @author maxio
  */
+
+
+
 public class Server {
     
     private ServerSocket serverSocket;
@@ -24,6 +29,26 @@ public class Server {
     
     private long timeOffset;
     private long startMillis;
+    
+    class ThreadCH extends Thread {
+        public void run(ConnectionHandler cH) throws IOException {
+            while (true) {
+                cH.run();
+            }
+        }
+    }
+    
+    public void start(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        while(true) {
+            final Socket clientSocket = serverSocket.accept();
+            ConnectionHandler cH = new Server.ConnectionHandler(clientSocket);
+            if() {
+                ThreadCH t = new ThreadCH();
+                t.run(cH);
+            }
+        }        
+    }
     
     public boolean isTimerRunning() {
         if(startMillis != 0) {
@@ -37,9 +62,10 @@ public class Server {
     }
     
     public void main(String[] args) throws IOException {
-        serverSocket = new ServerSocket(8080);
+        
         timeOffset = 0;
         startMillis = System.currentTimeMillis();
+        start(8080);
         
         if(startMillis == 0) {
             timeOffset = getTimerMillis();
@@ -48,7 +74,7 @@ public class Server {
             timeOffset += System.currentTimeMillis() - startMillis;
         }
     }
-    
+
     class ConnectionHandler implements Runnable{
     
         private Socket socket;
