@@ -6,10 +6,7 @@
 package javanetwork;
 
 import com.google.gson.Gson;
-import com.sun.org.apache.xml.internal.serialize.HTMLdtd;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.Thread;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -29,24 +26,22 @@ public class Server {
     
     private long timeOffset;
     private long startMillis;
-    
-    class ThreadCH extends Thread {
-        public void run(ConnectionHandler cH) throws IOException {
-            while (true) {
-                cH.run();
-            }
-        }
-    }
-    
+        
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        while(true) {
+        
+        while(handlers.size() <= 3) {
             final Socket clientSocket = serverSocket.accept();
-            ConnectionHandler cH = new Server.ConnectionHandler(clientSocket);
-            if() {
-                ThreadCH t = new ThreadCH();
-                t.run(cH);
-            }
+            new Thread(new ConnectionHandler(clientSocket) {
+                @Override
+                public void run() {
+                    ConnectionHandler cH = new Server.ConnectionHandler(clientSocket);
+                    handlers.add(cH);
+                    if(cH.isMaster()) {
+                        cH.run();
+                    }
+                }
+            }).start();
         }        
     }
     
@@ -94,17 +89,7 @@ public class Server {
 
         @Override
         public void run() {
-            // BufferedReader bfreader = new BufferedReader();
-
-            String line = null;
-            try {
-
-            } catch(Exception ex) {
-                throw new IllegalArgumentException();
-            }
-
-            Gson gson = new Gson();
-            gson.toJson(line);
+            
         }
     }
     
