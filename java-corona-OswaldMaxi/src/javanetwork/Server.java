@@ -6,7 +6,10 @@
 package javanetwork;
 
 import com.google.gson.Gson;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,58 +24,49 @@ import java.util.List;
 
 public class Server {
     
-    private ServerSocket serverSocket;
+    private ServerSocket serversocket;
     private final List<ConnectionHandler> handlers = new ArrayList<>();
     
     private long timeOffset;
     private long startMillis;
         
-    public void start(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
+     public void start(int port) throws IOException {        
+        serversocket = new ServerSocket(port);
         
-        while(handlers.size() <= 3) {
-            final Socket clientSocket = serverSocket.accept();
-            new Thread(new ConnectionHandler(clientSocket) {
-                @Override
-                public void run() {
-                    ConnectionHandler cH = new Server.ConnectionHandler(clientSocket);
-                    handlers.add(cH);
-                    if(cH.isMaster()) {
-                        cH.run();
-                    }
-                }
-            }).start();
-        }        
+        while(true) {
+        
+            final Socket socket = serversocket.accept();
+            if(handlers.size() == 3) {
+                // TODO überprüfen ob noch alle aktiv sind
+                socket.close();
+                continue;
+            }
+            final ConnectionHandler handler = new ConnectionHandler(socket);
+            new Thread(handler).start();
+            handlers.add(handler);
+        }
     }
     
     public boolean isTimerRunning() {
-        if(startMillis != 0) {
-            return true;
-        } 
-        return false;
+        return startMillis > 0;
     }
     
     public long getTimerMillis() {
-        return startMillis;
+        if(startMillis > 0) {
+            return timeOffset + (System.currentTimeMillis() - startMillis);
+        } else {
+            return timeOffset;
+        }
     }
     
     public void main(String[] args) throws IOException {
-        
-        timeOffset = 0;
-        startMillis = System.currentTimeMillis();
-        start(8080);
-        
-        if(startMillis == 0) {
-            timeOffset = getTimerMillis();
-            startMillis = 0;
-        } else {
-            timeOffset += System.currentTimeMillis() - startMillis;
-        }
+        new Server().start(8080);
     }
+    
 
     class ConnectionHandler implements Runnable{
     
-        private Socket socket;
+        private final Socket socket;
         private boolean master;
 
         public ConnectionHandler(Socket socket) {
@@ -90,6 +84,63 @@ public class Server {
         @Override
         public void run() {
             
+            int count = 0;
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
+            
+            while(true) {    
+                try{
+                    
+                    final String req = reader.readLine();
+                    count++;
+                    final Gson gson = new Gson();
+                    final Request r = gson.fromJson(req, Request.class);
+
+                    if(r.isMaster()) {
+                    } else {
+                        boolean setMasterTrue = true;
+                        for(ConnectionHandler h : handlers) {
+                            if(!h.equals(this) && h.isMaster() == true) {
+                                setMasterTrue = false;
+                                break;
+                            }
+                        }
+                        master = setMasterTrue;
+                    }
+
+                    if(r.isMaster()) {
+                        if(r.isStart()) {
+                            startMillis = System.currentTimeMillis();
+                        }
+
+                        if(r.isStop()) {
+                            startMillis = -1;
+                        } else {
+                            timeOffset = System.currentTimeMillis() - startMillis + timeOffset;
+                        }
+
+                        if(r.isClear()) {
+                            timeOffset = 0;
+                            if(isTimerRunning()) {
+                                startMillis = System.currentTimeMillis();
+                            } else {
+                                startMillis = 0;
+                            }
+                        }
+
+                        if(r.isEnd()) {
+                            serversocket.close();
+                            socket.close();
+
+                            handlers.remove(this);
+                            return;
+                        }        
+                    }
+
+                } catch (Exception ex){
+                    ex.printStackTrace();
+                }
+            }
         }
     }
     
