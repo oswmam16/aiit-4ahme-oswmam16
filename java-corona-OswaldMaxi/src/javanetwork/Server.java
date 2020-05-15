@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  *
  * @author maxio
@@ -37,7 +38,9 @@ public class Server {
         
             final Socket socket = serversocket.accept();
             if(handlers.size() == 3) {
+                
                 // TODO überprüfen ob noch alle aktiv sind
+                
                 socket.close();
                 continue;
             }
@@ -82,14 +85,15 @@ public class Server {
         }
 
         @Override
-        public void run() {
+        public void run() {         //TODO Müsste noch irgendwo synchronisiert werden
             
             int count = 0;
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
             
             while(true) {    
-                try{
+                try {
+                    
+                    final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
                     
                     final String req = reader.readLine();
                     count++;
@@ -97,20 +101,25 @@ public class Server {
                     final Request r = gson.fromJson(req, Request.class);
 
                     if(r.isMaster()) {
-                    } else {
                         boolean setMasterTrue = true;
-                        for(ConnectionHandler h : handlers) {
-                            if(!h.equals(this) && h.isMaster() == true) {
-                                setMasterTrue = false;
-                                break;
+                        synchronized(handlers) {
+                            for(ConnectionHandler h : handlers) {
+                                if(!h.equals(this) && h.isMaster() == true) {
+                                    setMasterTrue = false;
+                                    break;
+                                }
                             }
+                            master = setMasterTrue;
                         }
-                        master = setMasterTrue;
                     }
-
+                    
+                    Gson gsonrsp = new Gson();
+                    Response rsp = gsonrsp.fromJson(req, Response.class);
+                    
                     if(r.isMaster()) {
                         if(r.isStart()) {
                             startMillis = System.currentTimeMillis();
+                            rsp.setRunning(true);
                         }
 
                         if(r.isStop()) {
@@ -131,7 +140,6 @@ public class Server {
                         if(r.isEnd()) {
                             serversocket.close();
                             socket.close();
-
                             handlers.remove(this);
                             return;
                         }        
