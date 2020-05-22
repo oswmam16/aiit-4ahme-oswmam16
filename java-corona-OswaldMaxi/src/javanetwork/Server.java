@@ -15,13 +15,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  *
  * @author maxio
  */
-
-
 
 public class Server {
     
@@ -37,13 +34,18 @@ public class Server {
         while(true) {
         
             final Socket socket = serversocket.accept();
-            if(handlers.size() == 3) {
-                
-                // TODO überprüfen ob noch alle aktiv sind
-                
-                socket.close();
-                continue;
+            synchronized(handlers) {
+                    for(ConnectionHandler h : handlers) {
+                        if(h.isClosed()) {
+                            handlers.remove(h);
+                        }
+                    }
+                    if(handlers.size() == 3) {
+                        socket.close();
+                        continue;
+                    }
             }
+            
             final ConnectionHandler handler = new ConnectionHandler(socket);
             new Thread(handler).start();
             handlers.add(handler);
@@ -66,7 +68,7 @@ public class Server {
         new Server().start(8080);
     }
     
-
+    //--------------------------------------------------------------------------
     class ConnectionHandler implements Runnable{
     
         private final Socket socket;
@@ -85,18 +87,24 @@ public class Server {
         }
 
         @Override
-        public void run() {         //TODO Müsste noch irgendwo synchronisiert werden
+        public void run() {
             
-            int count = 0;
+            long count = 0;
             
-            while(true) {    
-                try {
+            try {
+                while(true) {    
                     
                     final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
-                    
                     final String req = reader.readLine();
+                    
+                    if(req == null) {
+                        socket.close();
+                        return;
+                    }
+                    
                     count++;
+                    
                     final Gson gson = new Gson();
                     final Request r = gson.fromJson(req, Request.class);
 
@@ -113,13 +121,9 @@ public class Server {
                         }
                     }
                     
-                    Gson gsonrsp = new Gson();
-                    Response rsp = gsonrsp.fromJson(req, Response.class);
-                    
                     if(r.isMaster()) {
                         if(r.isStart()) {
                             startMillis = System.currentTimeMillis();
-                            rsp.setRunning(true);
                         }
 
                         if(r.isStop()) {
@@ -140,17 +144,120 @@ public class Server {
                         if(r.isEnd()) {
                             serversocket.close();
                             socket.close();
+                            synchronized(socket) {
+                                
+                            }
                             handlers.remove(this);
                             return;
                         }        
                     }
-
-                } catch (Exception ex){
-                    ex.printStackTrace();
+                    
+                    final Response resp = new Response(master, count, isTimerRunning(), getTimerMillis());
+                    final String respString = gson.fromJson(resp, Response.class);
+                    writer.write(respString);
+                    writer.flush();
                 }
+                
+            } catch (Exception ex){
+                ex.printStackTrace();
             }
         }
     }
     
+    //--------------------------------------------------------------------------
+    public class Request {
+        public boolean master;
+        public boolean start;
+        public boolean stop;
+        public boolean clear;
+        public boolean end;
+
+        public boolean isMaster() {
+            return master;
+        }
+
+        public void setMaster(boolean master) {
+            this.master = master;
+        }
+
+        public boolean isStart() {
+            return start;
+        }
+
+        public void setStart(boolean start) {
+            this.start = start;
+        }
+
+        public boolean isStop() {
+            return stop;
+        }
+
+        public void setStop(boolean stop) {
+            this.stop = stop;
+        }
+
+        public boolean isClear() {
+            return clear;
+        }
+
+        public void setClear(boolean clear) {
+            this.clear = clear;
+        }
+
+        public boolean isEnd() {
+            return end;
+        }
+
+        public void setEnd(boolean end) {
+            this.end = end;
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    public class Response {
+        public boolean master;
+        public long count;
+        public boolean running;
+        public long time;
+
+        Response(boolean master, Long count, boolean timeRunning, long timeMillis) {
+            this.master = master;
+            this.count = count;
+            this.time = timeMillis;
+            this.running = timeRunning;        
+        }
+
+        public boolean isMaster() {
+            return master;
+        }
+
+        public void setMaster(boolean master) {
+            this.master = master;
+        }
+
+        public long getCount() {
+            return count;
+        }
+
+        public void setCount(long count) {
+            this.count = count;
+        }
+
+        public boolean isRunning() {
+            return running;
+        }
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
+        public long getTime() {
+            return time;
+        }
+
+        public void setTime(long time) {
+            this.time = time;
+        }
+    }
 }
 
