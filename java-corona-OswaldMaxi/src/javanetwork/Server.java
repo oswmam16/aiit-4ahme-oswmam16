@@ -53,23 +53,28 @@ public class Server {
     }
     
     public boolean isTimerRunning() {
-        return startMillis > 0;
-    }
-    
-    public long getTimerMillis() {
-        if(startMillis > 0) {
-            return timeOffset + (System.currentTimeMillis() - startMillis);
-        } else {
-            return timeOffset;
+        synchronized(handlers) {
+            return startMillis > 0;
         }
     }
     
-    public void main(String[] args) throws IOException {
+    public long getTimerMillis() {
+        synchronized(handlers) {
+            if(startMillis > 0) {
+                return timeOffset + (System.currentTimeMillis() - startMillis);
+            } else {
+                return timeOffset;
+            }
+        }
+    }
+    
+    //-----------------MAIN-----------------------------------------------------
+    public static void main() throws IOException {
         new Server().start(8080);
     }
     
-    //--------------------------------------------------------------------------
-    class ConnectionHandler implements Runnable{
+    //----CONNECTION-HANDLER----------------------------------------------------
+    private class ConnectionHandler implements Runnable{
     
         private final Socket socket;
         private boolean master;
@@ -120,40 +125,41 @@ public class Server {
                             master = setMasterTrue;
                         }
                     }
-                    
-                    if(r.isMaster()) {
-                        if(r.isStart()) {
-                            startMillis = System.currentTimeMillis();
-                        }
-
-                        if(r.isStop()) {
-                            startMillis = -1;
-                        } else {
-                            timeOffset = System.currentTimeMillis() - startMillis + timeOffset;
-                        }
-
-                        if(r.isClear()) {
-                            timeOffset = 0;
-                            if(isTimerRunning()) {
+                    synchronized(handlers) {
+                        if(r.isMaster()) {
+                            if(r.isStart()) {
                                 startMillis = System.currentTimeMillis();
-                            } else {
-                                startMillis = 0;
                             }
-                        }
 
-                        if(r.isEnd()) {
-                            serversocket.close();
-                            socket.close();
-                            synchronized(socket) {
-                                
+                            if(r.isStop()) {
+                                startMillis = -1;
+                            } else {
+                                timeOffset = System.currentTimeMillis() - startMillis + timeOffset;
                             }
-                            handlers.remove(this);
-                            return;
-                        }        
+
+                            if(r.isClear()) {
+                                timeOffset = 0;
+                                if(isTimerRunning()) {
+                                    startMillis = System.currentTimeMillis();
+                                } else {
+                                    startMillis = 0;
+                                }
+                            }
+
+                            if(r.isEnd()) {
+                                serversocket.close();
+                                socket.close();
+                                synchronized(socket) {
+
+                                }
+                                handlers.remove(this);
+                                return;
+                            }        
+                        }
                     }
                     
                     final Response resp = new Response(master, count, isTimerRunning(), getTimerMillis());
-                    final String respString = gson.fromJson(resp, Response.class);
+                    final String respString = gson.toJson(resp, Response.class);
                     writer.write(respString);
                     writer.flush();
                 }
@@ -164,7 +170,7 @@ public class Server {
         }
     }
     
-    //--------------------------------------------------------------------------
+    //-----------REQUEST--------------------------------------------------------
     public class Request {
         public boolean master;
         public boolean start;
@@ -213,7 +219,7 @@ public class Server {
         }
     }
     
-    //--------------------------------------------------------------------------
+    //-----------RESPONSE-------------------------------------------------------
     public class Response {
         public boolean master;
         public long count;
