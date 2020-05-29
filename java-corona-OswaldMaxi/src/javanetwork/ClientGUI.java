@@ -6,19 +6,22 @@
 package javanetwork;
 
 import java.awt.Dimension;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author maxio
  */
 public class ClientGUI extends javax.swing.JFrame {
-
     
+    Server server = new Server();
+    Request req = new Request();
     
     public ClientGUI() {
         initComponents();
         setTitle("Stopwatch");
         setMinimumSize(new Dimension(400, 400));
+        jbutConnect.setEnabled(true);
         jbutDisconnet.setEnabled(false);
         jbutStart.setEnabled(false);
         jbutStop.setEnabled(false);
@@ -36,6 +39,7 @@ public class ClientGUI extends javax.swing.JFrame {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jpanCenter = new javax.swing.JPanel();
         jtabRefTime = new javax.swing.JLabel();
         jbutConnect = new javax.swing.JButton();
         jbutDisconnet = new javax.swing.JButton();
@@ -43,12 +47,15 @@ public class ClientGUI extends javax.swing.JFrame {
         jbutStop = new javax.swing.JButton();
         jbutClear = new javax.swing.JButton();
         jbutEnd = new javax.swing.JButton();
+        jsliRefresh = new javax.swing.JSlider();
+        jlabTimer = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        jtabRefTime.setText("Refreshrate");
-        getContentPane().add(jtabRefTime, new java.awt.GridBagConstraints());
+        jpanCenter.setLayout(new java.awt.GridBagLayout());
+
+        jtabRefTime.setText("Refreshrate:");
+        jpanCenter.add(jtabRefTime, new java.awt.GridBagConstraints());
 
         jbutConnect.setText("Connect");
         jbutConnect.addActionListener(new java.awt.event.ActionListener() {
@@ -60,14 +67,16 @@ public class ClientGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutConnect, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutConnect, gridBagConstraints);
 
         jbutDisconnet.setText("Disconect");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutDisconnet, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutDisconnet, gridBagConstraints);
 
         jbutStart.setText("Start");
         jbutStart.addActionListener(new java.awt.event.ActionListener() {
@@ -79,7 +88,8 @@ public class ClientGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutStart, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutStart, gridBagConstraints);
 
         jbutStop.setText("Stop");
         jbutStop.addActionListener(new java.awt.event.ActionListener() {
@@ -91,7 +101,8 @@ public class ClientGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutStop, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutStop, gridBagConstraints);
 
         jbutClear.setText("Clear");
         jbutClear.addActionListener(new java.awt.event.ActionListener() {
@@ -103,7 +114,8 @@ public class ClientGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutClear, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutClear, gridBagConstraints);
 
         jbutEnd.setText("End");
         jbutEnd.addActionListener(new java.awt.event.ActionListener() {
@@ -115,35 +127,74 @@ public class ClientGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jbutEnd, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        jpanCenter.add(jbutEnd, gridBagConstraints);
+
+        jsliRefresh.setToolTipText("");
+        jsliRefresh.setCursor(new java.awt.Cursor(java.awt.Cursor.MOVE_CURSOR));
+        jpanCenter.add(jsliRefresh, new java.awt.GridBagConstraints());
+
+        jlabTimer.setFont(new java.awt.Font("Tahoma", 1, 52)); // NOI18N
+        jlabTimer.setText("0.000");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
+        jpanCenter.add(jlabTimer, gridBagConstraints);
+
+        getContentPane().add(jpanCenter, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    private void showException(Exception ex) {
+        JOptionPane.showMessageDialog(
+                this,
+                ex,
+                "Warning...",
+                JOptionPane.WARNING_MESSAGE
+        );
+    }
+    
     private void jbutConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutConnectActionPerformed
         
+//        try {
+//            Server.main(); 
+//        } catch (IOException ex) {
+//            showException(ex);
+//        }
         jbutDisconnet.setEnabled(true);
+        
+//        if( ) { // abfrage wegen Master
+//            jbutStart.setEnabled(true);
+//        }
     }//GEN-LAST:event_jbutConnectActionPerformed
 
     private void jbutStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStartActionPerformed
         
-        jbutStop.setEnabled(true);
         jbutStart.setEnabled(false);
+        jbutStop.setEnabled(true);
+        jbutClear.setEnabled(true);
+        jbutEnd.setEnabled(true);
     }//GEN-LAST:event_jbutStartActionPerformed
 
     private void jbutStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStopActionPerformed
         
+        req.setStop(true);
         jbutStart.setEnabled(true);
         jbutStop.setEnabled(false);
     }//GEN-LAST:event_jbutStopActionPerformed
 
     private void jbutClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutClearActionPerformed
         
-        
+        req.setClear(true);
     }//GEN-LAST:event_jbutClearActionPerformed
 
     private void jbutEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutEndActionPerformed
         
+        req.setEnd(true);
         dispose();
     }//GEN-LAST:event_jbutEndActionPerformed
 
@@ -189,6 +240,9 @@ public class ClientGUI extends javax.swing.JFrame {
     private javax.swing.JButton jbutEnd;
     private javax.swing.JButton jbutStart;
     private javax.swing.JButton jbutStop;
+    private javax.swing.JLabel jlabTimer;
+    private javax.swing.JPanel jpanCenter;
+    private javax.swing.JSlider jsliRefresh;
     private javax.swing.JLabel jtabRefTime;
     // End of variables declaration//GEN-END:variables
 }
