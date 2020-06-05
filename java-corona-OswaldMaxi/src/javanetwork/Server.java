@@ -28,7 +28,8 @@ public class Server {
     private long timeOffset;
     private long startMillis;
         
-     public void start(int port) throws IOException {        
+    public void start(int port) throws IOException {
+        
         serversocket = new ServerSocket(port);
         
         while(true) {
@@ -109,7 +110,6 @@ public class Server {
                     }
                     
                     count++;
-                    
                     final Gson gson = new Gson();
                     final Request r = gson.fromJson(req, Request.class);
 
@@ -125,6 +125,7 @@ public class Server {
                             master = setMasterTrue;
                         }
                     }
+                    
                     synchronized(handlers) {
                         if(r.isMaster()) {
                             if(r.isStart()) {
@@ -149,11 +150,10 @@ public class Server {
                             if(r.isEnd()) {
                                 serversocket.close();
                                 socket.close();
-                                synchronized(socket) {
-
+                                synchronized(socket) { 
+                                    handlers.remove(this);
+                                    return;
                                 }
-                                handlers.remove(this);
-                                return;
                             }        
                         }
                     }
@@ -167,7 +167,9 @@ public class Server {
             } catch (Exception ex){
                 ex.printStackTrace();
             }
+            
         }
+        
     }
     
     //-----------REQUEST--------------------------------------------------------
@@ -226,7 +228,7 @@ public class Server {
         public boolean running;
         public long time;
 
-        Response(boolean master, Long count, boolean timeRunning, long timeMillis) {
+        Response(boolean master, long count, boolean timeRunning, long timeMillis) {
             this.master = master;
             this.count = count;
             this.time = timeMillis;
