@@ -15,56 +15,28 @@ import javax.swing.SwingWorker;
  *
  * @author maxio
  */
-public class ConnectionWorker extends SwingWorker<Object, Response> {
+public class ConnectionWorker extends SwingWorker<String, Integer> {
 
     private final Socket socket;
-    private javanetwork.gui.ClientGUI gui;
 
-    public ConnectionWorker(int port, javanetwork.gui.ClientGUI gui) throws IOException {
-        this.socket = new Socket("127.0.0.1", port);
-        this.gui = gui;
+    public ConnectionWorker(int port, String host) throws IOException {
+        socket = new Socket(host, port);
     }
 
     @Override
-    protected Object doInBackground() throws Exception {
-        while(true) {
-            Response resp = null;
-            publish(resp);
-        }
-//        try {
-//            final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
-//            final Gson gson = new Gson();
-//            Server s1 = new Server();
-//            final Server.Request req = s1.new Request();
-//            
-//            final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            final String resp = reader.readLine();
-//            final Server.Response r = gson.fromJson(resp, Server.Response.class);
-//            
-//            if(!r.isMaster()) {
-//                req.setMaster(true);
-//            }
-//            
-//            final String reqString = gson.toJson(req, Server.Request.class);
-//            writer.write(reqString);
-//            writer.flush();
-//            
-//        } catch(Exception ex) {
-//            
-//        }
-//        return 0;
-    }
+    protected String doInBackground() throws Exception{
+         System.out.println("Do in Background" + Thread.currentThread().getId());
+         Thread.sleep(1000);
+         
+         publish(1);
+       
+         Thread.sleep(1000);
+         
+         publish(2);
+         
+         Thread.sleep(1000);
+        return "OK";
 
-    @Override
-    protected void process(List<Response> list) {
-        for(Response r : list) {
-            gui.handleResponse(r);
-        }
-    }
-
-    @Override
-    protected void done() {
-        super.done(); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
