@@ -5,11 +5,10 @@
  */
 package javanetwork.gui;
 
-import com.google.gson.Gson;
 import java.awt.Dimension;
 import java.io.IOException;
-import javanetwork.Server;
-import javanetwork.Server.Request;
+import java.util.List;
+import javanetwork.ConnectionWorker;
 import javanetwork.Server.Response;
 import javax.swing.JOptionPane;
 
@@ -19,17 +18,8 @@ import javax.swing.JOptionPane;
  */
 public class ClientGUI extends javax.swing.JFrame {
     
-    Server server = new Server();
-    Server s1 = new Server();
-    Server.Request req = s1.new Request();
-    Server s2 = new Server();
-    // Response resp = s2.new Response(false, 0, false, 0);
+    ConnectionWorker worker;
     
-    // InputStream
-    // OutputStream
-    
-    final Gson gson = new Gson();
-        
     public ClientGUI() {
         initComponents();
         setTitle("Stopwatch");
@@ -41,6 +31,7 @@ public class ClientGUI extends javax.swing.JFrame {
         jbutClear.setEnabled(false);
         jbutEnd.setEnabled(false);
     }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -201,28 +192,17 @@ public class ClientGUI extends javax.swing.JFrame {
 
     
     private void jbutConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutConnectActionPerformed
-        
         try {
-            Server.main(); 
-        } catch (IOException ex) {
-            showException(ex);
+            worker = new MyConnectionWorker(8080, this);
+            worker.execute();
+            jbutDisconnet.setEnabled(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        
-        //--In-Thread-Realisieren-----------
-//        do{
-//             req.setMaster(true);
-//        } while (!resp.isMaster());
-        
-        jbutDisconnet.setEnabled(true);
-        
-//        if(resp.master == true) { 
-//            jbutStart.setEnabled(true);
-//        }
     }//GEN-LAST:event_jbutConnectActionPerformed
 
     private void jbutStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStartActionPerformed
         
-        req.setStart(true);
 
 //        if(resp.isRunning()) {
 //            jbutStart.setEnabled(false);
@@ -235,7 +215,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
     private void jbutStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStopActionPerformed
         
-        req.setStop(true);
+        
         
 //        if(resp.isRunning()) {
 //            jbutStart.setEnabled(true);
@@ -245,12 +225,12 @@ public class ClientGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jbutStopActionPerformed
 
     private void jbutClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutClearActionPerformed
-        req.setClear(true);
+        
     }//GEN-LAST:event_jbutClearActionPerformed
 
     private void jbutEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutEndActionPerformed
         
-        req.setEnd(true);
+        
         dispose();
     }//GEN-LAST:event_jbutEndActionPerformed
 
@@ -302,4 +282,21 @@ public class ClientGUI extends javax.swing.JFrame {
     private javax.swing.JSlider jsliRefresh;
     private javax.swing.JLabel jtabRefTime;
     // End of variables declaration//GEN-END:variables
+
+    public void handleResponse(Response resp) {
+        
+    }
+    
+    private class MyConnectionWorker extends ConnectionWorker {
+        
+        public MyConnectionWorker(int port, ClientGUI gui) throws IOException {
+            super(port, gui);
+        }
+
+        @Override
+        protected void process(List<Response> list) {
+            super.process(list); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
 }
