@@ -193,9 +193,9 @@ public class ClientGUI extends javax.swing.JFrame {
     
     private void jbutConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutConnectActionPerformed
         try {
-            worker = new MyConnectionWorker(8080, this);
+            System.out.println("Button pressed" + Thread.currentThread().getId());
+            ConnectionWorker worker = new MyConnectionWorker(8080, "127.0.0.1");
             worker.execute();
-            jbutDisconnet.setEnabled(true);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -288,14 +288,27 @@ public class ClientGUI extends javax.swing.JFrame {
     }
     
     private class MyConnectionWorker extends ConnectionWorker {
+
+        public MyConnectionWorker(int port, String hostName) throws IOException {
+            super(port, hostName);
+        }
         
-        public MyConnectionWorker(int port, ClientGUI gui) throws IOException {
-            super(port, gui);
+        @Override
+        protected void done() { 
+            try {
+                String ergebnis = get();
+                System.out.println(ergebnis + " " + Thread.currentThread().getId());
+                jlabTimer.setText(ergebnis);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         @Override
-        protected void process(List<Response> list) {
-            super.process(list); //To change body of generated methods, choose Tools | Templates.
+        protected void process(List<Integer> chunks) {
+            for(int x : chunks){
+                System.out.println("Process " + x + " Thread " + Thread.currentThread().getId());
+            }
         }
 
     }
