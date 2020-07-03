@@ -250,13 +250,10 @@ public class ClientGUI extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     public void handleResponse(Response resp) {
-
+        
     }
 
     private class MyConnectionWorker extends ConnectionWorker {
-
-        private Response resp;
-        private Socket socket;
 
         public MyConnectionWorker(int port, String host) throws IOException {
             super(port, host);
