@@ -22,10 +22,39 @@ import javax.swing.SwingWorker;
  */
 public class ConnectionWorker extends SwingWorker<Object, Response> {
 
+    private boolean tryToStart;
+    private boolean tryToStop;
+    private boolean tryToClear;
+    private boolean tryToEnd;
+
+    private boolean cancel;
+
+    private int sliderState = 0;
+
     private final Socket socket;
 
     public ConnectionWorker(int port, String host) throws IOException {
         socket = new Socket(host, port);
+    }
+
+    public void setTryToStart(boolean tryToStart) {
+        this.tryToStart = tryToStart;
+    }
+
+    public void setTryToStop(boolean tryToStop) {
+        this.tryToStop = tryToStop;
+    }
+
+    public void setTryToClear(boolean tryToClear) {
+        this.tryToClear = tryToClear;
+    }
+
+    public void setTryToEnd(boolean tryToEnd) {
+        this.tryToEnd = tryToEnd;
+    }
+
+    public void setCancel(boolean cancel) {
+        this.cancel = cancel;
     }
 
     @Override
@@ -44,10 +73,14 @@ public class ConnectionWorker extends SwingWorker<Object, Response> {
                 final String respString = reader.readLine();
                 final Response resp = g.fromJson(respString, Response.class);
                 publish(resp);
+
+                synchronized (req) {
+                    int localSliderState = sliderState;
+                    Thread.sleep(1000 - localSliderState);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-
     }
 }
