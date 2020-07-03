@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 import javanetwork.Server.Response;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -181,11 +182,11 @@ public class ClientGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jbutConnectActionPerformed
 
     private void jbutStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStartActionPerformed
-        
+
     }//GEN-LAST:event_jbutStartActionPerformed
 
     private void jbutStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStopActionPerformed
-        
+
     }//GEN-LAST:event_jbutStopActionPerformed
 
     private void jbutClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutClearActionPerformed
@@ -263,8 +264,8 @@ public class ClientGUI extends javax.swing.JFrame {
 
         @Override
         protected void process(List<Response> list) {
-            for(Response r : list) {
-                if(r.isMaster()) {
+            for (Response r : list) {
+                if (r.isMaster()) {
                     jbutConnect.setEnabled(false);
                     jbutDisconnet.setEnabled(true);
                     jbutStart.setEnabled(true);
@@ -279,8 +280,8 @@ public class ClientGUI extends javax.swing.JFrame {
                     jbutClear.setEnabled(false);
                     jbutEnd.setEnabled(false);
                 }
-                
-                if(r.isRunning()) {
+
+                if (r.isRunning()) {
                     jbutStart.setEnabled(false);
                     jbutStop.setEnabled(true);
                     jbutClear.setEnabled(true);
@@ -301,7 +302,8 @@ public class ClientGUI extends javax.swing.JFrame {
                 jlabTimer.setText(ergebnis);
             } catch (Exception ex) {
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(ClientGUI.this, "Unbekannter Fehler", "Fehler", JOptionPane.ERROR_MESSAGE);
             }
-        }   
+        }
     }
 }
