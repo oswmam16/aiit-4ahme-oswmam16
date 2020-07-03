@@ -5,16 +5,11 @@
  */
 package javanetwork.gui;
 
-import com.google.gson.Gson;
 import javanetwork.worker.ConnectionWorker;
 import java.awt.Dimension;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
-import javanetwork.Server;
 import javanetwork.Server.Response;
 
 /**
@@ -22,9 +17,9 @@ import javanetwork.Server.Response;
  * @author maxio
  */
 public class ClientGUI extends javax.swing.JFrame {
-    
+
     ConnectionWorker worker;
-    
+
     public ClientGUI() {
         initComponents();
         setTitle("Stopwatch");
@@ -174,7 +169,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
     private void jbutConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutConnectActionPerformed
         try {
             System.out.println("Button pressed" + Thread.currentThread().getId());
@@ -186,23 +181,19 @@ public class ClientGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jbutConnectActionPerformed
 
     private void jbutStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStartActionPerformed
-        jbutStart.setEnabled(false);
-        jbutStop.setEnabled(true);
-        jbutClear.setEnabled(true);
-        jbutEnd.setEnabled(true);
+        
     }//GEN-LAST:event_jbutStartActionPerformed
 
     private void jbutStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutStopActionPerformed
-        jbutStart.setEnabled(true);
-        jbutStop.setEnabled(false);
+        
     }//GEN-LAST:event_jbutStopActionPerformed
 
     private void jbutClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutClearActionPerformed
-        
+
     }//GEN-LAST:event_jbutClearActionPerformed
 
     private void jbutEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbutEndActionPerformed
-        
+
         dispose();
     }//GEN-LAST:event_jbutEndActionPerformed
 
@@ -258,59 +249,59 @@ public class ClientGUI extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     public void handleResponse(Response resp) {
-        
+
     }
-    
+
     private class MyConnectionWorker extends ConnectionWorker {
+
         private Response resp;
         private Socket socket;
 
         public MyConnectionWorker(int port, String host) throws IOException {
             super(port, host);
         }
-        
-        @Override
-        protected String doInBackground() throws Exception {
-        
-            final Gson g = new Gson();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            final OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
-            while(true) {
-                try {
-                    final Server s = new Server();
-                    final Server.Request req = s.new Request();
-                    final String reqString = g.toJson(req);
-                    writer.write(reqString);
-                    writer.flush();
-
-                    final String respString = reader.readLine();
-                    final Response resp = g.fromJson(respString, Response.class);
-                    publish(resp);
-                    
-                    Thread.sleep(1000);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        
-        }
 
         @Override
         protected void process(List<Response> list) {
-            Response resp = list.get(0);
-            
-            if(resp.isMaster()) {
-                jbutConnect.setEnabled(false);
-                jbutDisconnet.setEnabled(true);
-                jbutStart.setEnabled(true);
-                jbutStop.setEnabled(true);
-                jbutClear.setEnabled(true);
-                jbutEnd.setEnabled(true);
-            }
-            
-            if(resp.isRunning()) {
-                jlabTimer.setText(String.format("%.3f", resp.getTime()));
+            for(Response r : list) {
+                if(r.isMaster()) {
+                    jbutConnect.setEnabled(false);
+                    jbutDisconnet.setEnabled(true);
+                    jbutStart.setEnabled(true);
+                    jbutStop.setEnabled(true);
+                    jbutClear.setEnabled(true);
+                    jbutEnd.setEnabled(true);
+                } else {
+                    jbutConnect.setEnabled(false);
+                    jbutDisconnet.setEnabled(true);
+                    jbutStart.setEnabled(false);
+                    jbutStop.setEnabled(false);
+                    jbutClear.setEnabled(false);
+                    jbutEnd.setEnabled(false);
+                }
+                
+                if(r.isRunning()) {
+                    jbutStart.setEnabled(false);
+                    jbutStop.setEnabled(true);
+                    jbutClear.setEnabled(true);
+                } else {
+                    jbutStart.setEnabled(true);
+                    jbutStop.setEnabled(false);
+                    jbutClear.setEnabled(false);
+                }
+                jlabTimer.setText(String.format("%.3f", r.getTime()));
             }
         }
+
+        @Override
+        protected void done() {
+            try {
+                String ergebnis = (String) get();
+                System.out.println(ergebnis + " " + Thread.currentThread().getId());
+                jlabTimer.setText(ergebnis);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }   
     }
 }
