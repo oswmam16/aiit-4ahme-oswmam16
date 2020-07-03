@@ -29,7 +29,7 @@ public class ConnectionWorker extends SwingWorker<Object, Response> {
 
     private boolean cancel;
 
-    private int sliderState = 0;
+    private int sliderState;
 
     private final Socket socket;
 
@@ -57,6 +57,10 @@ public class ConnectionWorker extends SwingWorker<Object, Response> {
         this.cancel = cancel;
     }
 
+    public synchronized void setSliderState(int sliderState) {
+        this.sliderState = sliderState;
+    }
+
     @Override
     protected Object doInBackground() throws Exception {
         final Gson g = new Gson();
@@ -74,10 +78,10 @@ public class ConnectionWorker extends SwingWorker<Object, Response> {
                 final Response resp = g.fromJson(respString, Response.class);
                 publish(resp);
 
-                synchronized (req) {
-                    int localSliderState = sliderState;
-                    Thread.sleep(1000 - localSliderState);
+                synchronized(this) {
+                    int localSliderState = sliderState; // wird im event dispash thread gesetzt und hier konsumiert
                 }
+                Thread.sleep(1000 - localSliderState);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
